@@ -15,7 +15,7 @@ const char *TEMPFILE = "/sys/class/thermal/thermal_zone0/temp";
 const int _DELAY = 5000;
 
 const double tempLevel[] = { 40.0, 50.0, 60.0, 70.0 };
-const int fansLevel[] = { 80, 100, 120, 150 };
+const int fansLevel[] = { 80, 100, 180, 220 };
 
 template <class T>  
 T stringToNum(const string& str)  
@@ -72,7 +72,7 @@ int main()
 		cerr << "WiringPi init failed." << endl;
 		exit(1);
 	}
-	softPwmCreate(_FANS_PIN, 0, _RANGE);
+	softPwmCreate(_FANS_PIN, _RANGE, _RANGE);
 	//softPwmWrite(_FANS_PIN, _RANGE);
 	daemon();
 	return 0;
