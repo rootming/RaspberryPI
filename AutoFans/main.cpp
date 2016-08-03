@@ -73,6 +73,7 @@ int main()
 		exit(1);
 	}
 	softPwmCreate(_FANS_PIN, _RANGE, _RANGE);
+    delay(_DELAY);
 	//softPwmWrite(_FANS_PIN, _RANGE);
 	daemon();
 	return 0;
