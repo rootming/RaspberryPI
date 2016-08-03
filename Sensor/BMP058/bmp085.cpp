@@ -1,5 +1,6 @@
 #include "bmp085.h"
 #include <math.h>
+#include <cstdio>
 
 #define BMP085_USE_DATASHEET_VALS (0) /* Set to 1 for sanity check */
 
@@ -11,7 +12,7 @@ static int fd;
     @brief  Writes an 8 bit value over I2C
 */
 /**************************************************************************/
-static void writeCommand(int8_t reg, int8_t value)
+static void writeCommand(uint8_t reg, uint8_t value)
 {
     wiringPiI2CWriteReg8(fd, reg, value);
 //  Wire.beginTransmission((uint8_t)fd);
@@ -30,7 +31,7 @@ static void writeCommand(int8_t reg, int8_t value)
     @brief  Reads an 8 bit value over I2C
 */
 /**************************************************************************/
-static void read8(int8_t reg, uint8_t *value)
+static void read8(uint8_t reg, uint8_t *value)
 {
     *value = wiringPiI2CReadReg8(fd, reg) ;
 //  Wire.beginTransmission((uint8_t)fd);
@@ -54,7 +55,7 @@ static void read8(int8_t reg, uint8_t *value)
     @brief  Reads a 16 bit value over I2C
 */
 /**************************************************************************/
-static void read16(int8_t reg, uint16_t *value)
+static void read16(uint8_t reg, uint16_t *value)
 {
     *value = wiringPiI2CReadReg16(fd, reg) ;
 //  Wire.beginTransmission((uint8_t)fd);
@@ -78,7 +79,7 @@ static void read16(int8_t reg, uint16_t *value)
     @brief  Reads a signed 16 bit value over I2C
 */
 /**************************************************************************/
-static void readS16(int8_t reg, int16_t *value)
+static void readS16(uint8_t reg, int16_t *value)
 {
   uint16_t i;
   read16(reg, &i);
@@ -364,7 +365,8 @@ BMP085::BMP085(bmp085_mode_t mode)
   uint8_t id;
   read8(BMP085_REGISTER_CHIPID, &id);
   if(id != 0x55){
-    cerr << "Init error." << endl;
+      cerr << "Init error." <<  endl;
+      printf("%x\n", id);
   }
 
   /* Set the mode indicator */

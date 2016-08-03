@@ -7,7 +7,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    BMP085 bmp(BMP085_MODE_STANDARD);
+    BMP085 bmp(BMP085_MODE_ULTRAHIGHRES);
     for(;;){
         cout << "Temperature:" << bmp.getTemperature() << endl;
         cout << "Pressure:" << bmp.getPressure() << endl;
