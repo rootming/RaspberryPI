@@ -66,7 +66,7 @@ class BMP085
 {
 public:
     BMP085(bmp085_mode_t mode);
-    ~BMP085(){};
+    ~BMP085(){}
     float getTemperature(void);
     float getPressure(void);
     float pressureToAltitude(float seaLvel, float atmospheric);
