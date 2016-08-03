@@ -168,5 +168,5 @@ uint32_t MS5611::readRegister24(uint8_t reg)
         cerr << "Failed to read from the i2c bus.\n" << endl;
     }
     ret = value[0] << 16 | value[1] << 8 | value[2];
-    return rets;
+    return ret;
 }
