@@ -155,7 +155,14 @@ double MS5611::getSeaLevel(double pressure, double altitude)
 // Read 16-bit from register (oops MSB, LSB)
 uint16_t MS5611::readRegister16(uint8_t reg)
 {
-    return wiringPiI2CReadReg16(fd, reg) ;
+    uint32_t ret = 0;
+    uint8_t value[] = { 0, 0 };
+    wiringPiI2CWrite(fd, reg);
+    if(read(fd, value, 2) != 2){
+        cerr << "Failed to read from the i2c bus.\n" << endl;
+    }
+    ret = value[0] << 8 | value[1];
+    return ret;
 }
 
 // Read 24-bit from register (oops XSB, MSB, LSB)
