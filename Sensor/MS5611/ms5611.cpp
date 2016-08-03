@@ -167,6 +167,6 @@ uint32_t MS5611::readRegister24(uint8_t reg)
     if(read(fd, value, 3) != 3){
         cerr << "Failed to read from the i2c bus.\n" << endl;
     }
-    ret = D[0] << 16 + D[1] << 8 + D[2];
-    return value;
+    ret = value[0] << 16 + value[1] << 8 + value[2];
+    return rets;
 }
