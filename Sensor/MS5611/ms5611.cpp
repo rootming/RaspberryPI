@@ -61,44 +61,22 @@ void MS5611::reset(void)
 
 void MS5611::readPROM(void)
 {
-    for (uint8_t offset = 0; offset < 6; offset++)
-    {
+    for (uint8_t offset = 0; offset < 6; offset++){
         fc[offset] = readRegister16(MS5611_CMD_READ_PROM + (offset * 2));
     }
 }
 
 uint32_t MS5611::readRawTemperature(void)
 {
-    //    Wire.beginTransmission(MS5611_ADDRESS);
-
-    //    #if ARDUINO >= 100
-    //    Wire.write(MS5611_CMD_CONV_D2 + uosr);
-    //    #else
-    //    Wire.send(MS5611_CMD_CONV_D2 + uosr);
-    //    #endif
-
-    //    Wire.endTransmission();
     wiringPiI2CWrite(fd, MS5611_CMD_CONV_D2 + uosr);
     delay(ct);
-
     return readRegister24(MS5611_CMD_ADC_READ);
 }
 
 uint32_t MS5611::readRawPressure(void)
 {
-    //    Wire.beginTransmission(MS5611_ADDRESS);
-
-    //    #if ARDUINO >= 100
-    //    Wire.write(MS5611_CMD_CONV_D1 + uosr);
-    //    #else
-    //    Wire.send(MS5611_CMD_CONV_D1 + uosr);
-    //    #endif
-
-    //    Wire.endTransmission();
     wiringPiI2CWrite(fd, MS5611_CMD_CONV_D1 + uosr);
-
     delay(ct);
-
     return readRegister24(MS5611_CMD_ADC_READ);
 }
 
@@ -177,59 +155,18 @@ double MS5611::getSeaLevel(double pressure, double altitude)
 // Read 16-bit from register (oops MSB, LSB)
 uint16_t MS5611::readRegister16(uint8_t reg)
 {
-    //    uint16_t value;
-    //    Wire.beginTransmission(MS5611_ADDRESS);
-    //    #if ARDUINO >= 100
-    //        Wire.write(reg);
-    //    #else
-    //        Wire.send(reg);
-    //    #endif
-    //    Wire.endTransmission();
-
-    //    Wire.beginTransmission(MS5611_ADDRESS);
-    //    Wire.requestFrom(MS5611_ADDRESS, 2);
-    //    while(!Wire.available()) {};
-    //    #if ARDUINO >= 100
-    //        uint8_t vha = Wire.read();
-    //        uint8_t vla = Wire.read();
-    //    #else
-    //        uint8_t vha = Wire.receive();
-    //        uint8_t vla = Wire.receive();
-    //    #endif;
-    //    Wire.endTransmission();
-
-    //    value = vha << 8 | vla;
-
     return wiringPiI2CReadReg16(fd, reg) ;
 }
 
 // Read 24-bit from register (oops XSB, MSB, LSB)
 uint32_t MS5611::readRegister24(uint8_t reg)
 {
-    //    uint32_t value;
-    //    Wire.beginTransmission(MS5611_ADDRESS);
-    //    #if ARDUINO >= 100
-    //        Wire.write(reg);
-    //    #else
-    //        Wire.send(reg);
-    //    #endif
-    //    Wire.endTransmission();
-
-    //    Wire.beginTransmission(MS5611_ADDRESS);
-    //    Wire.requestFrom(MS5611_ADDRESS, 3);
-    //    while(!Wire.available()) {};
-    //    #if ARDUINO >= 100
-    //        uint8_t vxa = Wire.read();
-    //        uint8_t vha = Wire.read();
-    //        uint8_t vla = Wire.read();
-    //    #else
-    //        uint8_t vxa = Wire.receive();
-    //        uint8_t vha = Wire.receive();
-    //        uint8_t vla = Wire.receive();
-    //    #endif;
-    //    Wire.endTransmission();
-    uint32_t value;
+    uint32_t ret = 0;
+    uint8_t value[] = { 0, 0, 0 };
     wiringPiI2CWrite(fd, reg);
-    read(fd, &value, 3);
+    if(read(fd, value, 3) != 3){
+        cerr << "Failed to read from the i2c bus.\n" << endl;
+    }
+    ret = D[0] << 16 + D[1] << 8 + D[2];
     return value;
 }
