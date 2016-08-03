@@ -1,5 +1,6 @@
 #include <iostream>
 #include <math.h>
+#include <cstdlib>
 #include "ms5611.h"
 
 using namespace std;
@@ -229,10 +230,6 @@ uint32_t MS5611::readRegister24(uint8_t reg)
     //    Wire.endTransmission();
     uint32_t value;
     wiringPiI2CWrite(fd, reg);
-    uint8_t vxa = wiringPiI2CRead(fd);
-    uint8_t vha = wiringPiI2CRead(fd);
-    uint8_t vla = wiringPiI2CRead(fd);
-    value = ((int32_t)vxa << 16) | ((int32_t)vha << 8) | vla;
-
+    read(fd, value, 3);
     return value;
 }
