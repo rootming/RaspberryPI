@@ -6,9 +6,12 @@
 #include <sys/mman.h>
 #include <assert.h>
 #include <linux/videodev2.h>
+#include <errno.h>
 #include "video.h"
 
 using namespace std;
+
+extern int errno;
 
 static unsigned int n_buffer = 0;  
 
@@ -21,7 +24,7 @@ Video::~Video()
 
 int Video::openDevice()
 {
-    if((fd = open(device.c_str(), O_RDWR, 0)) == -1){
+    if((fd = open(device.c_str(), O_RDWR | O_NONBLOCK, 0)) == -1){
         cerr << "Open device error.\n";
         exit(1);
     }
@@ -132,10 +135,10 @@ int Video::initMmap()
         }  
 
         usr_buf[n_buffer].length = buf.length;  
-        usr_buf[n_buffer].start = (char *)mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, buf.m.offset);  
+        usr_buf[n_buffer].start = (char *)mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, buf.m.offset);
 
         if(MAP_FAILED == usr_buf[n_buffer].start){  
-            cerr << "Fail to mmap\n";  
+            cerr << "Fail to mmap, code is:" << errno << endl ;
             exit(EXIT_FAILURE);  
         }  
     }  
@@ -210,7 +213,7 @@ int Video::readFrame()
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;  
     buf.memory = V4L2_MEMORY_MMAP;  
     //put cache from queue  
-    if(-1 == ioctl(fd, VIDIOC_DQBUF,&buf)){  
+    if(-1 == ioctl(fd, VIDIOC_DQBUF, &buf)){
         cerr << "Fail to ioctl 'VIDIOC_DQBUF'" << endl;  
         exit(EXIT_FAILURE);  
     }  
