@@ -27,3 +27,5 @@ typedef struct tagBITMAPFILEHEADER{
 
 void saveBMP(unsigned char *buffer, int w, int h, const char *filename);
 void savePPM(unsigned char *buffer, int w, int h, const char *filename);
+void saveJPG(unsigned char *buffer, int w, int h, const char *filename);
+void saveJPGfromMJPEG(unsigned char *buffer, int w, int h, const char *filename);

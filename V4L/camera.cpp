@@ -8,7 +8,6 @@
 #include <linux/videodev2.h>
 #include <errno.h>
 #include "camera.h"
-#include "raw2jpeg.h"
 #include "decode_jpeg.h"
 #include "save_image.h"
 
@@ -196,12 +195,18 @@ int Camera::processImage(void *addr, int length)
 //    FILE *fp;
     static int num = 0;
     char image_name[20];  
-    unsigned char *temp = (unsigned char *)new char[width * height * 3];
-    decoder_mjpeg_decode((unsigned char *)addr, temp, width * height * 2);
+//    unsigned char *temp = (unsigned char *)new char[width * height * 3];
+//    decoder_jpeg_decompress(mjpeg2jpeg((unsigned char *)addr, width * height * 2),
+//                            temp,
+//                            width * height * 3);
+
+
 
 
     sprintf(image_name, _IMAGE, num++);
-    savePPM(temp, width, height, image_name);
+    saveJPGfromMJPEG((unsigned char *)addr, width, height, image_name);
+//    savePPM(temp, width, height, image_name);
+//    saveBMP(temp, width, height, image_name);
 //    if((fp = fopen(image_name, "w")) == NULL){
 //        cerr << "Fail to fopen" << endl;
 //        exit(EXIT_FAILURE);
