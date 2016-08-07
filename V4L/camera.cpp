@@ -45,6 +45,7 @@ bool Camera::initDevice()
 //    struct v4l2_queryctrl query;  
     //detail control value  
     struct v4l2_fmtdesc fmt;  
+    struct v4l2_streamparm      setfps;
     int ret;  
     //get the format of video supply  
     memset(&fmt, 0, sizeof(fmt));  
@@ -88,6 +89,14 @@ bool Camera::initDevice()
     tv_fmt.fmt.pix.height = height;  
     tv_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
     tv_fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;  
+    setfps.parm.capture.timeperframe.denominator = fps;          //fps=30/1=30
+    setfps.parm.capture.timeperframe.numerator = 1;
+    if(ioctl(fd, VIDIOC_S_PARM, &setfps)==-1)
+    {
+        cerr << "Unable to set fps" << endl;
+        exit(-1);
+        close(fd);
+    }
     if (ioctl(fd, VIDIOC_S_FMT, &tv_fmt) < 0) {  
         cerr << "VIDIOC_S_FMT\n";  
         exit(-1);  
@@ -269,10 +278,11 @@ void Camera::closeDevice()
     return;  
 }  
 
-void Camera::start(int w, int h)
+void Camera::start(int w, int h, int f)
 {
     width = w;
     height = h;
+    fps = f;
     openDevice();
     getDevInfo();
     initDevice();
@@ -282,30 +292,29 @@ void Camera::start(int w, int h)
             int count = 10;  
             while(count-- > 0){  
                 for(;;){  
-                    fd_set fds;  
-                    struct timeval tv;  
-                    int r;  
+                    fd_set fds;
+                    struct timeval tv;
+                    int r;
 
-                    FD_ZERO(&fds);  
-                    FD_SET(fd,&fds);  
+                    FD_ZERO(&fds);
+                    FD_SET(fd,&fds);
 
-                    /*Timeout*/  
+                    /*Timeout*/
                     tv.tv_sec = 2;
-                    tv.tv_usec = 0;  
-                    r = select(fd + 1,&fds,NULL,NULL,&tv);  
+                    tv.tv_usec = 0;
+                    r = select(fd + 1, &fds, NULL, NULL, &tv);
 
-                    if(-1 == r){  
-                        if(EINTR == errno)  
-                            continue;  
-                        perror("Fail to select");  
-                        exit(EXIT_FAILURE);  
-                    }  
+                    if(-1 == r){
+                        if(EINTR == errno)
+                            continue;
+                        perror("Fail to select");
+                        exit(EXIT_FAILURE);
+                    }
 
-                    if(0 == r){  
-                        fprintf(stderr,"select Timeout\n");  
-                        exit(-1);  
-                    }  
-
+                    if(0 == r){
+                        fprintf(stderr,"select Timeout\n");
+                        exit(-1);
+                    }
                     if(readFrame())  
                         break;  
                 }  

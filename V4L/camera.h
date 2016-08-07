@@ -10,12 +10,12 @@ class Camera
 {
     public:
         Camera(const char *dev = _DEF_DEV): device(dev){}
-        void start(int w, int h);
+        void start(int w, int h, int f = 30);
         void stop();
         ~Camera();
     private:
         int fd;
-        int width, height;
+        int width, height, fps;
         string device;
         thread *th;
 
