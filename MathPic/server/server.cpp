@@ -8,35 +8,35 @@ using namespace std;
 
 bool Server::getAddress(const string &interface, string &ip)
 {
-    struct ifaddrs *ifAddrStruct = NULL;  
-    void * tmpAddrPtr = NULL;  
+    struct ifaddrs *ifAddrStruct = NULL;
+    void * tmpAddrPtr = NULL;
     bool found = false;
-    getifaddrs(&ifAddrStruct);  
-    while (ifAddrStruct != NULL){  
+    getifaddrs(&ifAddrStruct);
+    while (ifAddrStruct != NULL){
         if(strcmp(ifAddrStruct->ifa_name, interface.c_str()) == 0){
-            if (ifAddrStruct->ifa_addr->sa_family == AF_INET){   
-                // check it is IP4  
-                // is a valid IP4 Address  
-                tmpAddrPtr = &((struct sockaddr_in *)ifAddrStruct->ifa_addr)->sin_addr;  
-                char addressBuffer[INET_ADDRSTRLEN];  
-                inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);  
+            if (ifAddrStruct->ifa_addr->sa_family == AF_INET){
+                // check it is IP4
+                // is a valid IP4 Address
+                tmpAddrPtr = &((struct sockaddr_in *)ifAddrStruct->ifa_addr)->sin_addr;
+                char addressBuffer[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
                 ip = addressBuffer;
                 found = true;
                 return found;
-                //printf("%s IPV4 Address %s\n", ifAddrStruct->ifa_name, addressBuffer);   
-            }  
-            //else if (ifAddrStruct->ifa_addr->sa_family == AF_INET6){   
-            //    // check it is IP6  
-            //    // is a valid IP6 Address  
-            //    tmpAddrPtr = &((struct sockaddr_in *)ifAddrStruct->ifa_addr)->sin_addr;  
-            //    char addressBuffer[INET6_ADDRSTRLEN];  
-            //    inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);  
+                //printf("%s IPV4 Address %s\n", ifAddrStruct->ifa_name, addressBuffer);
+            }
+            //else if (ifAddrStruct->ifa_addr->sa_family == AF_INET6){
+            //    // check it is IP6
+            //    // is a valid IP6 Address
+            //    tmpAddrPtr = &((struct sockaddr_in *)ifAddrStruct->ifa_addr)->sin_addr;
+            //    char addressBuffer[INET6_ADDRSTRLEN];
+            //    inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
             //    ip = addressBuffer;
-            //    //printf("%s IPV6 Address %s\n", ifAddrStruct->ifa_name, addressBuffer);   
-            //}   
+            //    //printf("%s IPV6 Address %s\n", ifAddrStruct->ifa_name, addressBuffer);
+            //}
         }
         ifAddrStruct = ifAddrStruct->ifa_next;
-    }  
+    }
     //cout << defalutInterface << endl;
     cout << "Interface not found.\n";
     return found;
@@ -49,7 +49,10 @@ void Server::sendAddrToClient(const string& interface)
     struct sockaddr_in clientAddr;
     fd_set readFD;
     struct timeval timeout;
+    string ip;
+    uint8_t *buffer = new uint8_t[_BUFFER_SIZE];
 
+    getAddress(interface, ip);
     socklen_t socketLen = sizeof(struct sockaddr_in);
     int recvLen = 0;
 
@@ -67,6 +70,7 @@ void Server::sendAddrToClient(const string& interface)
         cerr << "UDP Server: Error code:" << errno << endl;
         exit(1);
     }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     cout << "Server(UDP) is running, Port: " << _UDP_PORT << endl;
     while(UDPServerFlag){
@@ -74,28 +78,28 @@ void Server::sendAddrToClient(const string& interface)
         FD_SET(serverFD, &readFD);
         timeout.tv_sec = 1;
         switch((select(serverFD + 1, &readFD, NULL, NULL, &timeout))){
-            case -1:
-                cerr << "UDP Server: Select error.\n";
-                break;
-            case 0:
-                cerr << "UDP Server: Time out.\n";
-                break;
-            default:
-                uint8_t *buffer = new uint8_t[_BUFFER_SIZE];
-                string ip;
-                getAddress(interface, ip);
-                if (FD_ISSET(serverFD ,&readFD)) {
-                    recvLen = recvfrom(serverFD, buffer, _BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &socketLen);
-                    if(recvLen > 0)
-                        cout << "Received client request, IP: " << (char *)inet_ntoa(clientAddr.sin_addr) << "\n";
-                    memcpy(buffer, ip.c_str(), ip.length() + 1);
-                    recvLen = sendto(serverFD, buffer, _BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, socketLen);
-                }
-                delete []buffer;
+        case -1:
+            cerr << "UDP Server: Select error.\n";
+            goto error;
+            break;
+        case 0:
+            cerr << "UDP Server: Time out.\n";
+            break;
+        default:
+
+            if (FD_ISSET(serverFD ,&readFD)) {
+                recvLen = recvfrom(serverFD, buffer, _BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, &socketLen);
+                if(recvLen > 0)
+                    cout << "Received client request, IP: " << (char *)inet_ntoa(clientAddr.sin_addr) << "\n";
+                memcpy(buffer, ip.c_str(), ip.length() + 1);
+                recvLen = sendto(serverFD, buffer, _BUFFER_SIZE, 0, (struct sockaddr*)&clientAddr, socketLen);
+            }
+
         }
     }
-    FD_CLR(serverFD, &readFD);
 
+    error: delete []buffer;
+           FD_CLR(serverFD, &readFD);
 }
 
 void Server::startUDPServer()
