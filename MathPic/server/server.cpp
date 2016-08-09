@@ -54,7 +54,7 @@ void Server::sendAddrToClient(const string& interface)
     int recvLen = 0;
 
     if((serverFD = socket(AF_INET, SOCK_DGRAM, 0)) == -1){
-        cerr << "Socket create failed\n";
+        cerr << "UDP Server: Socket create failed\n";
         exit(1);
     }
     serverAddr.sin_family = AF_INET;
@@ -63,8 +63,8 @@ void Server::sendAddrToClient(const string& interface)
     memset(&serverAddr.sin_zero, 0, sizeof(serverAddr));
 
     if(bind(serverFD, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr)) == -1){
-        cerr << "Bind failed.\n";
-        cerr << "Error code:" << errno << endl;
+        cerr << "UDP Server: Bind failed.\n";
+        cerr << "UDP Server: Error code:" << errno << endl;
         exit(1);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -75,10 +75,11 @@ void Server::sendAddrToClient(const string& interface)
         timeout.tv_sec = 1;
         switch((select(serverFD + 1, &readFD, NULL, NULL, &timeout))){
             case -1:
-                cerr << "Select error.\n";
+                cerr << "UDP Server: Select error.\n";
                 break;
             case 0:
                 cerr << "UDP Server: Time out.\n";
+                break;
             default:
                 uint8_t *buffer = new uint8_t[_BUFFER_SIZE];
                 string ip;
